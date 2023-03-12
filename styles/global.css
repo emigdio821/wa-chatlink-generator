@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .simple-input {
+    @apply rounded-md border bg-white p-2 text-sm outline-none ring-greenwahover focus:ring-2 dark:border-zinc-700 dark:bg-zinc-800;
+  }
+
+  .simple-btn {
+    @apply flex items-center justify-center gap-2 rounded-md border border-greenwa bg-greenwa p-2 text-sm font-semibold text-zinc-800 outline-none ring-greenwahover hover:border-greenwahover hover:bg-greenwahover focus:ring-2 active:translate-y-px disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .error-msg {
+    @apply text-xs text-red-400 dark:text-red-300;
+  }
+}

@@ -1,57 +1,49 @@
-import {
-  Box,
-  Link,
-  Input,
-  Stack,
-  Image,
-  Button,
-  Center,
-  Heading,
-  Textarea,
-  FormLabel,
-  IconButton,
-  FormControl,
-  useColorMode,
-  useColorModeValue,
-} from '@chakra-ui/react'
-import {
-  SunIcon,
-  MoonIcon,
-  ChatIcon,
-  LinkIcon,
-  PhoneIcon,
-  ExternalLinkIcon,
-} from '@chakra-ui/icons'
+import clsx from 'clsx'
 import Head from 'next/head'
+import { useState } from 'react'
 import { NextPage } from 'next/types'
-import { FormEvent, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { formSchema } from '../form-schemas'
+import WAIcon from '../components/svg/WAIcon'
+import ThemeBtn from '../components/ThemeBtn'
+import { yupResolver } from '@hookform/resolvers/yup'
 import { motion, AnimatePresence } from 'framer-motion'
+import {
+  BiLink,
+  BiPhone,
+  BiReset,
+  BiInfoCircle,
+  BiLinkExternal,
+  BiMessageRounded,
+} from 'react-icons/bi'
+
+interface FieldValues {
+  countryCode: string
+  phone: string
+  message: string
+}
 
 const Home: NextPage = () => {
-  const [number, setNumber] = useState<string>()
-  const [message, setMessage] = useState<string>()
-  const [generate, setGenerate] = useState<boolean>(false)
-  const { toggleColorMode } = useColorMode()
-  const ThemeIcon = useColorModeValue(MoonIcon, SunIcon)
+  const [data, setData] = useState<FieldValues>()
 
-  const handleFormSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+  const {
+    reset,
+    register,
+    handleSubmit,
+    formState: { errors, isValid, isDirty },
+  } = useForm<FieldValues>({
+    mode: 'onChange',
+    resolver: yupResolver(formSchema),
+  })
 
-    if (message && number) {
-      setGenerate(true)
-    } else {
-      setGenerate(false)
-    }
-  }
+  const onSubmit = handleSubmit((values) => {
+    setData(values)
+    reset({}, { keepValues: true })
+  })
 
-  const handlePhoneChange = (value: string) => {
-    setGenerate(false)
-    setNumber(value)
-  }
-
-  const handleMessagePhoneChange = (value: string) => {
-    setGenerate(false)
-    setMessage(encodeURIComponent(value))
+  function handleReset() {
+    reset()
+    setData(undefined)
   }
 
   return (
@@ -59,91 +51,129 @@ const Home: NextPage = () => {
       <Head>
         <title>WA ChatLink Generator</title>
       </Head>
-      <Center>
-        <Stack p={10} w="2xl">
-          <form onSubmit={handleFormSubmit}>
-            <Stack>
-              <Stack
-                mb={6}
-                align="center"
-                justify="space-between"
-                direction="row"
+      <div className="mx-auto flex max-w-2xl flex-col gap-2 p-6">
+        <form onSubmit={onSubmit}>
+          <div className="flex flex-col gap-2">
+            <div className="mb-6 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="flex w-8 max-sm:w-7">
+                  <WAIcon />
+                </div>
+                <h2 className="text-2xl font-bold max-sm:text-xl">
+                  ChatLink Generator
+                </h2>
+              </div>
+              <ThemeBtn />
+            </div>
+            <p className="mb-6 text-sm text-zinc-500 dark:text-zinc-400">
+              <span className="font-semibold">Note</span>: please check the{' '}
+              <span className="font-semibold">country code</span> and{' '}
+              <span className="font-semibold">phone number</span> carefully,
+              otherwise, the link will not be generated correctly.
+            </p>
+            <div className="flex flex-col gap-1">
+              <label
+                htmlFor="phone"
+                className="flex items-center gap-2 text-sm font-semibold"
               >
-                <Stack direction="row" align="center">
-                  <Image
-                    alt="wa"
-                    src="./wa.svg"
-                    boxSize={{ base: 8, md: 10 }}
+                <BiPhone />
+                Phone number
+              </label>
+              <div className="flex items-start gap-2">
+                <div className="flex flex-col gap-1">
+                  <input
+                    type="text"
+                    id="countryCode"
+                    placeholder="52"
+                    {...register('countryCode')}
+                    className={clsx('simple-input w-20', {
+                      'border-red-400 dark:border-red-300': errors.countryCode,
+                    })}
                   />
-                  <Heading as="h2" size={{ base: 'md', sm: 'lg' }}>
-                    ChatLink Generator
-                  </Heading>
-                </Stack>
-                <IconButton
-                  size="sm"
-                  rounded="full"
-                  aria-label="Theme"
-                  icon={<ThemeIcon />}
-                  onClick={toggleColorMode}
-                />
-              </Stack>
-              <FormControl isRequired>
-                <FormLabel>
-                  <PhoneIcon boxSize={3} /> Phone number
-                </FormLabel>
-                <Input
-                  type="number"
-                  placeholder="+521234567890"
-                  onChange={(e) => handlePhoneChange(e.target.value)}
-                />
-              </FormControl>
-              <FormControl isRequired>
-                <FormLabel>
-                  <ChatIcon boxSize={3} /> Message
-                </FormLabel>
-                <Textarea
-                  height={140}
+                  {errors.countryCode && (
+                    <p className="error-msg">{errors.countryCode.message}</p>
+                  )}
+                </div>
+                <div className="flex flex-col gap-1 w-full">
+                  <input
+                    id="phone"
+                    type="text"
+                    {...register('phone')}
+                    placeholder="1234567890"
+                    className={clsx('simple-input w-full', {
+                      'border-red-400 dark:border-red-300': errors.phone,
+                    })}
+                  />
+                  {errors.phone && (
+                    <p className="error-msg">{errors.phone.message}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-col gap-1">
+              <label
+                htmlFor="message"
+                className="flex items-center gap-2 text-sm font-semibold"
+              >
+                <BiMessageRounded />
+                Message
+              </label>
+              <div className="flex flex-col gap-1">
+                <textarea
+                  id="message"
+                  {...register('message')}
                   placeholder="The message you want to send"
-                  onChange={(e) => handleMessagePhoneChange(e.target.value)}
+                  className={clsx('simple-input h-36 resize-none p-2', {
+                    'border-red-400 dark:border-red-300': errors.message,
+                  })}
                 />
-              </FormControl>
-              <Button
+                {errors.message && (
+                  <p className="error-msg">{errors.message.message}</p>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleReset}
+                className="simple-btn border border-zinc-300 bg-zinc-600 text-white hover:border-zinc-300 hover:bg-zinc-800 dark:border-zinc-800 dark:bg-zinc-700 dark:hover:border-zinc-800 dark:hover:bg-zinc-800"
+              >
+                <BiReset />
+                Reset
+              </button>
+              <button
                 type="submit"
-                variant="outline"
-                rightIcon={<LinkIcon boxSize={3} />}
+                className="simple-btn w-full"
+                disabled={!isValid || !isDirty}
               >
-                Generate link
-              </Button>
-            </Stack>
-          </form>
-          <AnimatePresence exitBeforeEnter initial={false}>
-            <Box
-              p={4}
-              rounded="md"
-              as={motion.div}
-              borderWidth={1}
-              exit={{ opacity: 0.2, y: -10, transition: { duration: 0.2 } }}
-              animate={{ opacity: 1, y: 0, transition: { duration: 0.2 } }}
-              initial={{ opacity: 0.2, y: -10 }}
-              key={generate ? 'animate' : 'exit'}
-              display={generate ? 'unset' : 'none'}
+                <BiLink />
+                Generate
+              </button>
+            </div>
+          </div>
+        </form>
+        <AnimatePresence mode="wait" initial={false}>
+          {data && !isDirty && (
+            <motion.div
+              exit={{ opacity: 0, y: 6 }}
+              transition={{ duration: 0.2 }}
+              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 6 }}
+              className="flex items-center justify-center gap-2 rounded-md border p-2 text-sm font-semibold dark:border-zinc-800"
             >
-              <Heading as="h6" size={{ base: 'sm', sm: 'md' }} mb={2}>
-                Link:
-              </Heading>
-              <Link
-                isExternal
-                fontSize="sm"
-                noOfLines={2}
-                href={`https://wa.me/${number}?text=${message}`}
+              <a
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 rounded-md underline-offset-4 outline-none ring-[#72caaf] hover:underline focus:ring-2"
+                href={`https://wa.me/+${data?.countryCode}${data?.phone}?text=${data?.message}`}
               >
-                {`https://wa.me/${number}?text=${message}`}{' '}
-                <ExternalLinkIcon mx="2px" />
-              </Link>
-            </Box>
-          </AnimatePresence>
-        </Stack>
-      </Center>
+                {`https://wa.me/+${data?.countryCode}${data?.phone}...`}
+                <BiLinkExternal />
+              </a>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </>
   )
 }
